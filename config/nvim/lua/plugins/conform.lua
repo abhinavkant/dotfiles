@@ -14,6 +14,15 @@ return {
                 css = { "prettier" },
                 html = { "prettier" },
                 csharp = { "csharpier" }, -- 🔥 for C#
+                sql = { "sqlfluff" },
+            },
+
+            formatters = {
+                sqlfluff = {
+                    command = "sqlfluff",
+                    args = { "fix", "-" },
+                    stdin = true,
+                },
             },
 
             format_on_save = {

@@ -15,6 +15,7 @@ return {
                 "lua_ls",
                 "ts_ls",
                 "omnisharp",
+                "sqlls",
             },
             automatic_installation = true,
             automatic_enable = true,
