@@ -14,7 +14,7 @@ return {
             ensure_installed = {
                 "lua_ls",
                 "ts_ls",
-                "csharpls",
+                "csharp_ls",
                 "sqlls",
             },
             automatic_installation = true,
@@ -38,10 +38,15 @@ return {
                     local opts = { buffer = args.buf }
 
                     vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = args.buf, desc = "Go to definition" })
-                    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = args.buf, desc = "Hover"})
-                    vim.keymap.set("n", "gr", vim.lsp.buf.references, { buffer = args.buf, desc = "Go to references"})
-                    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = args.buf, desc = "Rename"})
-                    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = args.buf, desc = "code action"})
+                    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = args.buf, desc = "Hover" })
+                    vim.keymap.set("n", "gr", vim.lsp.buf.references, { buffer = args.buf, desc = "Go to references" })
+                    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = args.buf, desc = "Rename" })
+                    vim.keymap.set(
+                        "n",
+                        "<leader>ca",
+                        vim.lsp.buf.code_action,
+                        { buffer = args.buf, desc = "code action" }
+                    )
                 end,
             })
 
@@ -61,10 +66,15 @@ return {
                 capabilities = capabilities,
             })
 
+            vim.lsp.config("sqlls", {
+                capabilities = capabilities,
+            })
+
             -- enable servers
             vim.lsp.enable("lua_ls")
             vim.lsp.enable("ts_ls")
             vim.lsp.enable("omnisharp")
+            vim.lsp.enable("sqlls")
         end,
     },
 }
