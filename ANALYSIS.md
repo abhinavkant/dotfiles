@@ -1,24 +1,48 @@
 # Repository Analysis
 
-## Scope
+## Summary
 
-This repository currently appears to be a dotfiles workspace with documentation focused on symlink-based setup for shell and editor configuration.
+This repository is a personal dotfiles workspace centered on editor and terminal tooling rather than a full Stow-style dotfiles package layout.
 
-## Current State
+The actively tracked configuration currently includes:
 
-- A root [`README.md`](/Users/abhinav.kant/Development/dotfiles/README.md) explains manual symlink management and a GNU Stow-based layout.
-- The documented examples mention `nvim`, `zsh`, and `tmux`.
-- The git worktree is not clean; existing modifications are present in Neovim-related files and were left untouched.
+- Neovim at [`config/nvim`](/Users/abhinav.kant/Development/dotfiles/config/nvim)
+- tmux at [`config/tmux/tmux.conf`](/Users/abhinav.kant/Development/dotfiles/config/tmux/tmux.conf)
+- Alacritty at [`config/alacritty/alacritty.toml`](/Users/abhinav.kant/Development/dotfiles/config/alacritty/alacritty.toml)
+
+## Current Structure
+
+- [`README.md`](/Users/abhinav.kant/Development/dotfiles/README.md) documents generic symlink and GNU Stow workflows.
+- [`AGENT.md`](/Users/abhinav.kant/Development/dotfiles/AGENT.md) is intended to guide future repo edits.
+- [`config/nvim/init.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/init.lua) boots the Neovim config through `config.lazy`.
+- [`config/nvim/lua/config`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/config) contains core Neovim setup such as options, keymaps, and `lazy.nvim` bootstrap.
+- [`config/nvim/lua/plugins`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins) contains per-plugin configuration files.
+
+## Neovim State
+
+- Plugin management is handled with `lazy.nvim`.
+- LSP setup is concentrated in [`config/nvim/lua/plugins/lsp.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins/lsp.lua).
+- Treesitter setup is concentrated in [`config/nvim/lua/plugins/treesitter.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins/treesitter.lua).
+- SQL support currently has two parts:
+  - `sqlls` is included in the Mason/LSP setup.
+  - the `sql` Treesitter parser is included for syntax highlighting.
 
 ## Observations
 
-- The README describes two possible repository layouts, but the actual tracked structure should be kept aligned with one approach to avoid setup ambiguity.
-- The documentation is setup-oriented and does not yet describe repository-specific conventions, bootstrap scripts, or validation commands.
-- If this repo is intended to scale, a Stow-first structure is likely easier to maintain than ad hoc symlink instructions.
+- The README is broader and more generic than the actual repository contents.
+- The repo layout is `config/...` based, not a complete Stow-ready package structure.
+- The Neovim plugin directory includes a few signs of ongoing iteration, such as backup or misspelled filenames like [`config/nvim/lua/plugins/cmp.lua.bak`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins/cmp.lua.bak) and [`config/nvim/lua/plugins/makrdown-preview.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins/makrdown-preview.lua).
+- The SQL highlighting issue was a configuration-location problem: highlighting belongs to Treesitter, while LSP only adds language-server features.
+
+## Risks And Gaps
+
+- The README may mislead future edits if treated as the source of truth for the current filesystem layout.
+- The Neovim config mixes newer plugin files with leftover artifacts, which increases the chance of duplicate or conflicting configuration.
+- Runtime verification still matters for editor features such as Treesitter highlighting, Mason installs, and language-server startup.
 
 ## Suggested Next Steps
 
-- Confirm and document the canonical folder layout used by this repository.
-- Add a bootstrap command section for first-time setup.
-- Add a validation section that checks symlinks and required tools.
-- Consider documenting platform-specific differences if this repo targets both macOS and Linux.
+- Keep Neovim plugin responsibilities separated by file and avoid duplicate plugin specs across multiple files.
+- Update the README so it distinguishes clearly between generic dotfiles guidance and this repo's actual structure.
+- Remove or intentionally document backup/typo-named plugin files once their purpose is confirmed.
+- Validate Neovim changes in-editor when changing Treesitter, Mason, or LSP behavior.

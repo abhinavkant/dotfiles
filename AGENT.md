@@ -6,8 +6,9 @@ This repository is a personal dotfiles/configuration workspace. At the time of w
 
 - `config/nvim/`: a Neovim setup written in Lua and managed with `lazy.nvim`
 - `config/tmux/tmux.conf`: a tmux configuration with TPM plugins enabled
+- `config/alacritty/alacritty.toml`: an Alacritty terminal configuration
 
-The root [`README.md`](/Users/abhinavkant/Development/dotfiles/README.md) describes general dotfiles and symlink workflows, but the checked-in repository is currently smaller and more concrete than that document suggests. Prefer the actual filesystem layout over README examples when making changes.
+The root [`README.md`](/Users/abhinav.kant/Development/dotfiles/README.md) describes general dotfiles and symlink workflows, but the checked-in repository is currently smaller and more concrete than that document suggests. Prefer the actual filesystem layout over README examples when making changes.
 
 ## Repository Layout
 
@@ -24,12 +25,15 @@ The root [`README.md`](/Users/abhinavkant/Development/dotfiles/README.md) descri
   Plugin lockfile managed by `lazy.nvim`
 - `config/tmux/tmux.conf`
   Tmux keybindings, status bar, and TPM plugin declarations
+- `config/alacritty/alacritty.toml`
+  Alacritty terminal configuration
 
 ## Tech Stack And Runtime Assumptions
 
 - Neovim configuration language: Lua
 - Plugin manager: `lazy.nvim`
 - LSP/bootstrap helpers: `mason.nvim`, `mason-lspconfig.nvim`, `nvim-lspconfig`
+- Completion: `blink-cmp` and `nvim-cmp`-related dependencies may both appear during migration
 - Formatter orchestration: `conform.nvim`
 - Treesitter: `nvim-treesitter` on the `main` branch
 - Tmux plugin manager: TPM
@@ -42,7 +46,17 @@ This repo assumes external tools may exist on the machine, including:
 - formatters like `prettier`, `stylua`, `csharpier`, `sqlfluff`
 - optional tooling referenced by plugins such as `bun`
 
+The current Neovim LSP config in `config/nvim/lua/plugins/lsp.lua` also assumes these LSP-related tools are available through Mason or otherwise installed:
+
+- `lua_ls` for Lua
+- `ts_ls` for TypeScript and JavaScript
+- `sqlls` for SQL
+- one C# server, but the config is currently split:
+  Mason ensures `csharp_ls`, while `nvim-lspconfig` enables `omnisharp`
+- `hrsh7th/cmp-nvim-lsp` must remain installed because LSP capabilities are built via `require("cmp_nvim_lsp").default_capabilities()`
+
 Do not silently remove references to external tools just because they are missing in one environment; call out missing prerequisites instead.
+Do not assume C# LSP is healthy unless the Mason package name and the enabled `nvim-lspconfig` server name are aligned.
 
 ## How The Neovim Config Is Structured
 
@@ -60,6 +74,9 @@ Implications:
 - New global mappings belong in `config/nvim/lua/config/keymaps.lua`
 - Plugin additions or behavior changes usually belong in a dedicated file under `config/nvim/lua/plugins/`
 - Prefer small plugin files over growing `plugins/init.lua`
+- Syntax highlighting changes belong in Treesitter config, not LSP config
+- Language-server installation and enablement belong in `config/nvim/lua/plugins/lsp.lua`
+- When troubleshooting LSP, check both Mason `ensure_installed` entries and the later `vim.lsp.config(...)` / `vim.lsp.enable(...)` names; they currently differ for C#
 
 ## Conventions To Follow
 
@@ -69,6 +86,7 @@ Implications:
   update it only when plugin changes require it, and avoid unrelated churn.
 - Avoid renaming user files casually. Some filenames currently look imperfect but may already be wired into the user’s workflow or local untracked changes.
 - Respect existing local work. This repository may be intentionally dirty while configs are being iterated on.
+- Prefer updating the authoritative config file instead of introducing duplicate plugin specs in a second file.
 
 ## Validation Guidance
 
@@ -78,6 +96,8 @@ Prefer lightweight validation after changes:
   `nvim --headless "+qa"`
 - If plugin specs changed, open Neovim and verify `:Lazy` loads without errors
 - If LSP/formatter config changed, verify the relevant filetype inside Neovim rather than assuming static analysis is enough
+- For LSP-specific checks, confirm `:Mason` shows the expected packages and `:LspInfo` shows the expected attached server names for the current buffer
+- If Treesitter changed, verify `:TSInstallInfo` or open the target filetype and confirm highlighting actually starts
 - For tmux changes, reload with:
   `tmux source-file config/tmux/tmux.conf`
 
@@ -88,6 +108,8 @@ If a validation step cannot run because a dependency is unavailable, say so clea
 - The README describes manual symlink and GNU Stow approaches, but the current repository layout is not a complete Stow-style package layout.
 - Neovim is the most actively evolving area of the repo.
 - There are signs of in-progress plugin migration work in `config/nvim/lua/plugins/` and `config/nvim/lazy-lock.json`; avoid overwriting or “cleaning up” unrelated edits.
+- Some plugin filenames appear to be backups or typos, such as `cmp.lua.bak` and `makrdown-preview.lua`; do not rename or delete them unless explicitly asked.
+- `config/nvim/lua/plugins/lsp.lua` currently mixes `csharp_ls` in Mason with `omnisharp` in `vim.lsp.enable(...)`; treat that as an intentional issue to verify, not something to ignore.
 
 ## Good Change Patterns
 
@@ -99,8 +121,12 @@ If a validation step cannot run because a dependency is unavailable, say so clea
   edit `config/nvim/lua/plugins/conform.lua`.
 - Change LSP installation or enablement:
   edit `config/nvim/lua/plugins/lsp.lua`.
+- Change syntax highlighting / parser installation:
+  edit `config/nvim/lua/plugins/treesitter.lua`.
 - Change tmux UX:
   edit `config/tmux/tmux.conf`.
+- Change terminal settings:
+  edit `config/alacritty/alacritty.toml`.
 
 ## Things To Avoid
 
@@ -108,6 +134,7 @@ If a validation step cannot run because a dependency is unavailable, say so clea
 - Do not delete seemingly unused plugin files without checking whether the file is tracked, referenced, or part of in-progress local work.
 - Do not assume the deployment target paths from the README are fully authoritative for the current repo.
 - Do not overwrite `lazy-lock.json` as part of unrelated edits.
+- Do not confuse SQL LSP support with SQL syntax highlighting; those are configured in different places.
 
 ## Preferred Agent Workflow
 
@@ -119,11 +146,14 @@ If a validation step cannot run because a dependency is unavailable, say so clea
 
 ## File References
 
-- [`README.md`](/Users/abhinavkant/Development/dotfiles/README.md)
-- [`config/nvim/init.lua`](/Users/abhinavkant/Development/dotfiles/config/nvim/init.lua)
-- [`config/nvim/lua/config/lazy.lua`](/Users/abhinavkant/Development/dotfiles/config/nvim/lua/config/lazy.lua)
-- [`config/nvim/lua/config/options.lua`](/Users/abhinavkant/Development/dotfiles/config/nvim/lua/config/options.lua)
-- [`config/nvim/lua/config/keymaps.lua`](/Users/abhinavkant/Development/dotfiles/config/nvim/lua/config/keymaps.lua)
-- [`config/nvim/lua/plugins`](/Users/abhinavkant/Development/dotfiles/config/nvim/lua/plugins)
-- [`config/nvim/lazy-lock.json`](/Users/abhinavkant/Development/dotfiles/config/nvim/lazy-lock.json)
-- [`config/tmux/tmux.conf`](/Users/abhinavkant/Development/dotfiles/config/tmux/tmux.conf)
+- [`README.md`](/Users/abhinav.kant/Development/dotfiles/README.md)
+- [`config/nvim/init.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/init.lua)
+- [`config/nvim/lua/config/lazy.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/config/lazy.lua)
+- [`config/nvim/lua/config/options.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/config/options.lua)
+- [`config/nvim/lua/config/keymaps.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/config/keymaps.lua)
+- [`config/nvim/lua/plugins`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins)
+- [`config/nvim/lua/plugins/lsp.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins/lsp.lua)
+- [`config/nvim/lua/plugins/treesitter.lua`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lua/plugins/treesitter.lua)
+- [`config/nvim/lazy-lock.json`](/Users/abhinav.kant/Development/dotfiles/config/nvim/lazy-lock.json)
+- [`config/tmux/tmux.conf`](/Users/abhinav.kant/Development/dotfiles/config/tmux/tmux.conf)
+- [`config/alacritty/alacritty.toml`](/Users/abhinav.kant/Development/dotfiles/config/alacritty/alacritty.toml)
